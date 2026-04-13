@@ -1,0 +1,80 @@
+services:
+  nginx:
+    image: nginx:1-alpine
+    container_name: fullstack_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app_network
+
+  backend:
+    build: ./backend
+    container_name: fullstack_backend
+    restart: unless-stopped
+    expose:
+      - "80"
+    volumes:
+      - ./backend/laravel:/var/www/html
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: shipping_labels
+      DB_USERNAME: laravel
+      DB_PASSWORD: secret
+      EASYPOST_API_KEY: ""   # <-- paste your EasyPost test key here (easypost.com/account/api-keys)
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  frontend:
+    build: ./frontend
+    container_name: fullstack_frontend
+    restart: unless-stopped
+    expose:
+      - "5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - app_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: fullstack_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootsecret   # local dev only — change for any shared/production environment
+      MYSQL_DATABASE: shipping_labels
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootsecret"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
