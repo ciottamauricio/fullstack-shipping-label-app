@@ -16,6 +16,9 @@ backend/laravel/public/storage/
 frontend/node_modules/
 frontend/dist/
 
+# Root env (contains real secrets — copy from .env.example)
+.env
+
 # OS
 .DS_Store
 Thumbs.db

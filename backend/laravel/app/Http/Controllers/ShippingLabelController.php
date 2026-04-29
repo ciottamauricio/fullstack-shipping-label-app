@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateShippingLabelRequest;
 use App\Models\ShippingLabel;
 use App\Services\EasyPostService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use RuntimeException;
 
 class ShippingLabelController extends Controller
 {
     // US state/territory codes accepted for address validation
-    private const US_STATES = [
+    public const US_STATES = [
         'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
         'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
         'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
@@ -92,42 +92,16 @@ class ShippingLabelController extends Controller
      *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
      * )
      */
-    public function store(Request $request): JsonResponse
+    public function store(CreateShippingLabelRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            // From address
-            'from_name'    => ['required', 'string', 'max:255'],
-            'from_company' => ['nullable', 'string', 'max:255'],
-            'from_street1' => ['required', 'string', 'max:255'],
-            'from_street2' => ['nullable', 'string', 'max:255'],
-            'from_city'    => ['required', 'string', 'max:255'],
-            'from_state'   => ['required', 'string', 'size:2', Rule::in(self::US_STATES)],
-            'from_zip'     => ['required', 'string', 'regex:/^\d{5}(-\d{4})?$/'],
-
-            // To address
-            'to_name'      => ['required', 'string', 'max:255'],
-            'to_company'   => ['nullable', 'string', 'max:255'],
-            'to_street1'   => ['required', 'string', 'max:255'],
-            'to_street2'   => ['nullable', 'string', 'max:255'],
-            'to_city'      => ['required', 'string', 'max:255'],
-            'to_state'     => ['required', 'string', 'size:2', Rule::in(self::US_STATES)],
-            'to_zip'       => ['required', 'string', 'regex:/^\d{5}(-\d{4})?$/'],
-
-            // Package (weight in oz, dimensions in inches)
-            'weight' => ['required', 'numeric', 'min:0.1'],
-            'length' => ['required', 'numeric', 'min:0.1'],
-            'width'  => ['required', 'numeric', 'min:0.1'],
-            'height' => ['required', 'numeric', 'min:0.1'],
-        ]);
-
         try {
-            $easyPostData = $this->easyPost->createLabel($validated);
+            $easyPostData = $this->easyPost->createLabel($request->validated());
         } catch (RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
         $label = $request->user()->shippingLabels()->create([
-            ...$validated,
+            ...$request->validated(),
             ...$easyPostData,
         ]);
 

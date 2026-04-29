@@ -26,12 +26,13 @@ git clone <repo-url>
 cd fullstack-project
 ```
 
-Open `docker-compose.yml` and set your EasyPost API key:
+Copy the example env file and set your EasyPost API key:
 
-```yaml
-environment:
-  EASYPOST_API_KEY: "EZAK..."   # get one free at easypost.com/account/api-keys
+```bash
+cp .env.example .env
 ```
+
+Then open `.env` and fill in `EASYPOST_API_KEY` (get a free test key at easypost.com/account/api-keys). The values in `.env` are picked up by `docker-compose.yml` automatically.
 
 > Use a **test key** (begins with `EZAK` for test mode) during development.  
 > Test-mode labels are free and print real-looking PDFs — no postage is actually charged.
