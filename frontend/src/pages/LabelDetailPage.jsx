@@ -1,27 +1,10 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { api } from '../api/client'
-import { useAuth } from '../context/AuthContext'
+import { Link, useParams } from 'react-router-dom'
+import Navbar from '../components/Navbar'
+import { useLabel } from '../hooks/useLabel'
 
 export default function LabelDetailPage() {
   const { id } = useParams()
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-  const [label, setLabel] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    api.get(`/labels/${id}`)
-      .then(setLabel)
-      .catch((err) => setError(err.status === 403 ? 'Label not found.' : err.message))
-      .finally(() => setLoading(false))
-  }, [id])
-
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login', { replace: true })
-  }
+  const { label, loading, error } = useLabel(id)
 
   const handlePrint = () => {
     window.open(label.label_url, '_blank', 'noopener,noreferrer')
@@ -29,15 +12,7 @@ export default function LabelDetailPage() {
 
   return (
     <div className="layout">
-      <nav className="nav">
-        <span className="nav-brand">ShipLabel</span>
-        <div className="nav-right">
-          <span className="nav-user">{user?.name}</span>
-          <button className="btn btn-ghost btn-sm" onClick={handleLogout}>
-            Sign out
-          </button>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="page">
         <div className="page-header">
@@ -57,12 +32,9 @@ export default function LabelDetailPage() {
 
         {label && (
           <div className="detail-grid">
-            {/* Tracking */}
             <div className="detail-card detail-card-highlight">
               <p className="detail-card-label">Tracking Number</p>
-              <p className="detail-tracking">
-                {label.tracking_code ?? 'Pending'}
-              </p>
+              <p className="detail-tracking">{label.tracking_code ?? 'Pending'}</p>
               <div className="detail-badges">
                 <span className="badge">{label.carrier}</span>
                 <span className="badge badge-blue">{label.service}</span>
@@ -70,43 +42,30 @@ export default function LabelDetailPage() {
               </div>
             </div>
 
-            {/* Cost */}
             <div className="detail-card">
               <p className="detail-card-label">Postage Cost</p>
               <p className="detail-value-lg">${Number(label.rate).toFixed(2)}</p>
-              <p className="detail-meta">
-                Created {new Date(label.created_at).toLocaleString()}
-              </p>
+              <p className="detail-meta">Created {new Date(label.created_at).toLocaleString()}</p>
             </div>
 
-            {/* Addresses */}
             <div className="detail-card">
               <p className="detail-card-label">From</p>
               <AddressBlock
-                name={label.from_name}
-                company={label.from_company}
-                street1={label.from_street1}
-                street2={label.from_street2}
-                city={label.from_city}
-                state={label.from_state}
-                zip={label.from_zip}
+                name={label.from_name} company={label.from_company}
+                street1={label.from_street1} street2={label.from_street2}
+                city={label.from_city} state={label.from_state} zip={label.from_zip}
               />
             </div>
 
             <div className="detail-card">
               <p className="detail-card-label">To</p>
               <AddressBlock
-                name={label.to_name}
-                company={label.to_company}
-                street1={label.to_street1}
-                street2={label.to_street2}
-                city={label.to_city}
-                state={label.to_state}
-                zip={label.to_zip}
+                name={label.to_name} company={label.to_company}
+                street1={label.to_street1} street2={label.to_street2}
+                city={label.to_city} state={label.to_state} zip={label.to_zip}
               />
             </div>
 
-            {/* Package */}
             <div className="detail-card">
               <p className="detail-card-label">Package</p>
               <div className="detail-specs">
@@ -123,7 +82,6 @@ export default function LabelDetailPage() {
               </div>
             </div>
 
-            {/* EasyPost ID */}
             <div className="detail-card">
               <p className="detail-card-label">EasyPost Shipment ID</p>
               <p className="detail-mono">{label.easypost_shipment_id}</p>

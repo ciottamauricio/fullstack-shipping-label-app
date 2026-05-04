@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
-import { useAuth } from '../context/AuthContext'
+import Navbar from '../components/Navbar'
 
 const EMPTY_ADDRESS = {
   name: '', company: '', street1: '', street2: '', city: '', state: '', zip: '',
@@ -10,7 +10,6 @@ const EMPTY_ADDRESS = {
 const EMPTY_PARCEL = { weight: '', length: '', width: '', height: '' }
 
 export default function CreateLabelPage() {
-  const { user, logout } = useAuth()
   const navigate = useNavigate()
 
   const [from, setFrom] = useState(EMPTY_ADDRESS)
@@ -27,11 +26,6 @@ export default function CreateLabelPage() {
     fieldErrors[name]?.[0] ? (
       <span className="field-error">{fieldErrors[name][0]}</span>
     ) : null
-
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login', { replace: true })
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -76,15 +70,7 @@ export default function CreateLabelPage() {
 
   return (
     <div className="layout">
-      <nav className="nav">
-        <span className="nav-brand">ShipLabel</span>
-        <div className="nav-right">
-          <span className="nav-user">{user?.name}</span>
-          <button className="btn btn-ghost btn-sm" onClick={handleLogout}>
-            Sign out
-          </button>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="page">
         <div className="page-header">
@@ -98,7 +84,6 @@ export default function CreateLabelPage() {
         {error && <div className="alert alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
-          {/* From Address */}
           <section className="form-section">
             <h3 className="section-title">From Address</h3>
             <div className="form-grid">
@@ -145,7 +130,6 @@ export default function CreateLabelPage() {
             </div>
           </section>
 
-          {/* To Address */}
           <section className="form-section">
             <h3 className="section-title">To Address</h3>
             <div className="form-grid">
@@ -192,36 +176,31 @@ export default function CreateLabelPage() {
             </div>
           </section>
 
-          {/* Package */}
           <section className="form-section">
             <h3 className="section-title">Package</h3>
             <div className="form-grid form-grid-4">
               <div className="form-group">
                 <label className="label">Weight (oz) *</label>
                 <input name="weight" type="number" step="0.1" min="0.1" required
-                  className="input" value={parcel.weight} onChange={patch(setParcel)}
-                  placeholder="16" />
+                  className="input" value={parcel.weight} onChange={patch(setParcel)} placeholder="16" />
                 {fe('weight')}
               </div>
               <div className="form-group">
                 <label className="label">Length (in) *</label>
                 <input name="length" type="number" step="0.1" min="0.1" required
-                  className="input" value={parcel.length} onChange={patch(setParcel)}
-                  placeholder="12" />
+                  className="input" value={parcel.length} onChange={patch(setParcel)} placeholder="12" />
                 {fe('length')}
               </div>
               <div className="form-group">
                 <label className="label">Width (in) *</label>
                 <input name="width" type="number" step="0.1" min="0.1" required
-                  className="input" value={parcel.width} onChange={patch(setParcel)}
-                  placeholder="8" />
+                  className="input" value={parcel.width} onChange={patch(setParcel)} placeholder="8" />
                 {fe('width')}
               </div>
               <div className="form-group">
                 <label className="label">Height (in) *</label>
                 <input name="height" type="number" step="0.1" min="0.1" required
-                  className="input" value={parcel.height} onChange={patch(setParcel)}
-                  placeholder="4" />
+                  className="input" value={parcel.height} onChange={patch(setParcel)} placeholder="4" />
                 {fe('height')}
               </div>
             </div>
