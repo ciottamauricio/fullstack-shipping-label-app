@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\LoginUserAction;
+use App\Actions\RegisterUserAction;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private readonly RegisterUserAction $registerAction,
+        private readonly LoginUserAction $loginAction,
+    ) {}
     /**
      * @OA\Post(
      *     path="/register",
@@ -41,13 +45,9 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = User::create($request->validated());
-        $token = $user->createToken('api')->plainTextToken;
+        $result = $this->registerAction->execute($request->validated());
 
-        return response()->json([
-            'user'  => $user,
-            'token' => $token,
-        ], 201);
+        return response()->json($result, 201);
     }
 
     /**
@@ -83,18 +83,12 @@ class AuthController extends Controller
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        if (! Auth::attempt($request->validated())) {
+        try {
+            $result = $this->loginAction->execute($request->validated());
+            return response()->json($result);
+        } catch (\InvalidArgumentException) {
             return response()->json(['message' => 'Invalid credentials.'], 401);
         }
-
-        /** @var User $user */
-        $user = Auth::user();
-        $token = $user->createToken('api')->plainTextToken;
-
-        return response()->json([
-            'user'  => $user,
-            'token' => $token,
-        ]);
     }
 
     /**

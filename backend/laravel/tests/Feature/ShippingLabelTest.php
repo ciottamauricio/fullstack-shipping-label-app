@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\ShippingProviderInterface;
 use App\Models\ShippingLabel;
 use App\Models\User;
-use App\Services\EasyPostService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -45,10 +45,10 @@ class ShippingLabelTest extends TestCase
         ], $overrides);
     }
 
-    /** Mock EasyPostService::createLabel to return $this->easyPostResult. */
+    /** Mock the shipping provider interface to return $this->easyPostResult. */
     private function mockEasyPost(): void
     {
-        $this->mock(EasyPostService::class)
+        $this->mock(ShippingProviderInterface::class)
              ->shouldReceive('createLabel')
              ->once()
              ->andReturn($this->easyPostResult);
@@ -82,7 +82,7 @@ class ShippingLabelTest extends TestCase
     {
         $payload = $this->validPayload();
 
-        $this->mock(EasyPostService::class)
+        $this->mock(ShippingProviderInterface::class)
              ->shouldReceive('createLabel')
              ->once()
              ->withArgs(function (array $data) use ($payload) {
@@ -99,7 +99,7 @@ class ShippingLabelTest extends TestCase
 
     public function test_create_label_returns_422_when_easypost_fails(): void
     {
-        $this->mock(EasyPostService::class)
+        $this->mock(ShippingProviderInterface::class)
              ->shouldReceive('createLabel')
              ->once()
              ->andThrow(new \RuntimeException('EasyPost error: Invalid address.'));

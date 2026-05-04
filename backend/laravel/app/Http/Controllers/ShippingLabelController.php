@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CreateShippingLabelAction;
 use App\Http\Requests\CreateShippingLabelRequest;
 use App\Models\ShippingLabel;
-use App\Services\EasyPostService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -21,7 +21,7 @@ class ShippingLabelController extends Controller
         'DC',
     ];
 
-    public function __construct(private readonly EasyPostService $easyPost) {}
+    public function __construct(private readonly CreateShippingLabelAction $createLabelAction) {}
 
     /**
      * @OA\Get(
@@ -95,17 +95,11 @@ class ShippingLabelController extends Controller
     public function store(CreateShippingLabelRequest $request): JsonResponse
     {
         try {
-            $easyPostData = $this->easyPost->createLabel($request->validated());
+            $label = $this->createLabelAction->execute($request->user(), $request->validated());
+            return response()->json($label, 201);
         } catch (RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
-
-        $label = $request->user()->shippingLabels()->create([
-            ...$request->validated(),
-            ...$easyPostData,
-        ]);
-
-        return response()->json($label, 201);
     }
 
     /**

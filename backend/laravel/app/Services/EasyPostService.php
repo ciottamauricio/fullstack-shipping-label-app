@@ -2,26 +2,14 @@
 
 namespace App\Services;
 
+use App\Contracts\ShippingProviderInterface;
 use EasyPost\EasyPostClient;
 use EasyPost\Exception\General\EasyPostException;
 use RuntimeException;
 
-class EasyPostService
+class EasyPostService implements ShippingProviderInterface
 {
-    private EasyPostClient $client;
-
-    public function __construct()
-    {
-        $apiKey = config('easypost.api_key');
-
-        if (empty($apiKey)) {
-            throw new RuntimeException(
-                'EasyPost API key is not set. Add EASYPOST_API_KEY to docker-compose.yml.'
-            );
-        }
-
-        $this->client = new EasyPostClient($apiKey);
-    }
+    public function __construct(private readonly EasyPostClient $client) {}
 
     /**
      * Create a Shipment, buy the cheapest USPS rate, and return the
